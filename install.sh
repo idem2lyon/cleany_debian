@@ -52,6 +52,15 @@ Run without any argument will default to installation."
   exit 0
 }
 
+
+check_root() { 
+ echo -en "Checking if user is running as \033[91mROOT\033[0m"; sleep 0.5
+ [[ "$UID" != 0 ]] && { echo "Please run as root!"; exit 1; }
+  echo "User running as root!!"
+  sleep $defsleep
+}
+
+
 check_net() { 
   echo -en "Checking for internet connection"; sleep 0.2
   for i in $(seq 3); do echo -n '.'; sleep 0.8; done  # waiting time
@@ -59,6 +68,7 @@ check_net() {
     0; } || { echo -e "${R}Failure! Please connect to the Internet first!\n$W" >&2;
     return 1; }
 }
+
 
 title() { echo -e "\033[92m\
  _   _      _                                                                                                                 
@@ -88,21 +98,6 @@ yesorno() {
     [[ $answer == [N] ]] && { return 1; }                                                                         
   done                                                                                                                  
 }                                                                                                                             
-
-check_root() { 
- echo -en "Checking if user is running as \033[91mROOT\033[0m"; sleep 0.5
- [[ "$UID" != 0 ]] && { echo "Please run as root!"; exit 1; }
-  echo "User running as root!!"
-  sleep $defsleep
-}
-
-net() {   
-  echo -en "Checking for internet connection"; sleep 0.2
-  for i in $(seq 3); do echo -n '.'; sleep 0.8; done  # waiting time
-  ping -c 3 8.8.8.8 &>/dev/null && { echo -e "${G}Success!\n$W"; return \
-    0; } || { echo -e "${R}Failure! Please connect to the Internet!\n$W" >&2;
-    return 1; }
-}
 
 
 conf_vim() {
