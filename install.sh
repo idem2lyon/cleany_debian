@@ -1,28 +1,32 @@
 # Jessie
+myhostname=`hostname -s`
+
+
+apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade && apt-get -y autoremove
 
 apt-get update && apt-get install -y \
 	adduser \
-  libreadline-gplv2-dev \ 
-  build-essential \
-  ca-certificates \
+	libreadline-gplv2-dev \ 
+  	build-essential \
+  	ca-certificates \
 	cron \
 	curl \
 	dialog\
-  debconf-utils \
-  libarchive-dev \
+  	debconf-utils \
+  	libarchive-dev \
 	libav-tools \
 	libjsoncpp-dev \
 	libpcre3-dev \
 	git \
-  g++ \
-  htop \
-  locate \
+  	g++ \
+  	htop \
+  	locate \
 	libfreetype6-dev \
-  libmcrypt-dev \
-  libcurl4-gnutls-dev \
-  libpng12-dev \
-  libreadline-gplv2-dev \ 
-  libssh2-php \
+  	libmcrypt-dev \
+  	libcurl4-gnutls-dev \
+  	libpng12-dev \
+  	libreadline-gplv2-dev \ 
+  	libssh2-php \
 	libtinyxml-dev \
 	libudev1 \
 	libxml2 \
@@ -32,7 +36,7 @@ apt-get update && apt-get install -y \
 	mysql-common \
 	mysql-server \
 	mysql-server-core \
-  net-tools \
+  	net-tools \
 	nginx-common \
 	nginx-full \
 	nodejs \
@@ -47,19 +51,24 @@ apt-get update && apt-get install -y \
 	php5-json \
 	php5-mysql \
 	php-pear \
-  python \
+  	python \
 	python-serial \
 	sudo \
 	supervisor \
 	systemd	 \
-  tar \
-  telnet \
-  tzdata \
-  unzip \ 
-  usb-modeswitch \
-  usbutils \
-  vim \
-  wget
+  	tar \
+  	telnet \
+  	tzdata \
+	unzip \ 
+  	usb-modeswitch \
+  	usbutils \
+  	vim \
+  	wget
+
+# Remove package
+
+# Cleaning
+apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade && apt-get -y autoremove
 
 # Configure locale  
 unzip \ usb-modeswitch RUN dpkg-reconfigure locales && \
@@ -79,22 +88,19 @@ sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@
 # Configure SUDO
 echo "www-data ALL=(ALL) NOPASSWD: ALL" | (EDITOR="tee -a" visudo)
 
-apt-get autoremove
 
-
-
-# Configuration Certificate SSL RUN openssl genrsa -out $hostname.key 2048
+# Configuration Certificate SSL RUN openssl genrsa -out ${myhostname}.key 2048
 RUN openssl req \
         -new \
         -subj "/C=FR/ST=France/L=Lyon/O=jeedom/OU=JE/CN=jeedom" \
         -key jeedom.key \
         -out jeedom.csr && \
-   openssl x509 -req -days 9999 -in jeedom.csr -signkey jeedom.key -out jeedom.crt
+   openssl x509 -req -days 9999 -in ${myhostname}.csr -signkey ${myhostname}.key -out ${myhostname}.crt
 
 RUN mkdir /etc/nginx/certs && \
-        cp jeedom.key /etc/nginx/certs && \
-        cp jeedom.crt /etc/nginx/certs && \
-        rm jeedom.key jeedom.crt
+        cp ${myhostname}.key /etc/nginx/certs && \
+        cp ${myhostname}.crt /etc/nginx/certs && \
+        rm ${myhostname}.key ${myhostname}.crt
               
 COPY nginx_default_ssl /etc/nginx/sites-enabled/default_ssl
 
