@@ -21,7 +21,7 @@
 # Variables
 #----------------------------------------------------------------------------
 # Defaults
-uris=/opt/Raspberry_install
+uris=`pwd`
 defsleep=0;
 uisleep=2;
 r='\033[91m'; g='\033[92m'; w='\033[0m' # Colours
