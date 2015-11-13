@@ -19,7 +19,6 @@
 #----------------------------------------------------------------------------
 # Run this script after your first boot with archlinux (as root)
 # Variables
-myhostname=`hostname -s`
 #----------------------------------------------------------------------------
 # Defaults
 uris=/opt/Raspberry_install
@@ -41,25 +40,12 @@ thank() {
   exit 0
 }
 
-do_uninstall() {
-  echo "Uninstall is still in progress."
-  exit 0
-}
-
-do_help() {
-  echo "Usage: $0 [uninstall|help]
-Run without any argument will default to installation."
-  exit 0
-}
-
-
 check_root() { 
  echo -en "Checking if user is running as \033[91mROOT\033[0m"; sleep 0.5
  [[ "$UID" != 0 ]] && { echo "Please run as root!"; exit 1; }
   echo "User running as root!!"
   sleep $defsleep
 }
-
 
 check_net() { 
   echo -en "Checking for internet connection"; sleep 0.2
@@ -68,7 +54,6 @@ check_net() {
     0; } || { echo -e "${R}Failure! Please connect to the Internet first!\n$W" >&2;
     return 1; }
 }
-
 
 title() { echo -e "\033[92m\
  _   _      _                                                                                                                 
@@ -99,7 +84,6 @@ yesorno() {
   done                                                                                                                  
 }                                                                                                                             
 
-
 conf_vim() {
   echo "Install vim"
   aptitude install vim vim-nox
@@ -116,13 +100,13 @@ hname() {
   hostname -F /etc/hostname
   /etc/init.d/hostname.sh start
   echo "Your new hostname is:" $(hostname)
+  myhostname=`hostname -s`
 }
 
 set_locale() {	
   echo "Configuring locale"
   echo "fr_FR ISO-8859-1
   fr_FR.UTF-8 UTF-8" > /etc/locale.gen
-  
   echo "LANG=\"fr_FR.UTF-8\"" > /etc/default/locale
   echo"" > /etc/environment
   /usr/sbin/locale-gen
@@ -135,21 +119,32 @@ motd() {
   chmod +x ${uris}/config/motd.sh
   mv /etc/motd /etc/motd_backup
   cp ${uris}/config/motd.sh /etc/profile.d/
-  /bin/sed -i -e 's/^PrintLastLog yes*/PrintLastLog no/' /etc/ssh/sshd_config
-  service ssh restart
   echo "motd added"
 }
 
-###################################
-###################################
-###################################
-###################################
-#^ validé
-###################################
-###################################
-###################################
-###################################
+timezone() {
+  rm -rf /var/lib/apt/lists/* 
+  echo "Europe/Berlin" > /etc/timezone
+  dpkg-reconfigure -f noninteractive tzdata
+}
 
+security() {
+  # Create a user group staff
+  
+  # Configure SSH & securiy
+  /bin/sed -i -e 's/PermitRootLogin without-password/PermitRootLogin no\nAllowGroups staff/' /etc/ssh/sshd_config
+  /bin/sed -i -e 's/^PrintLastLog yes*/PrintLastLog no' /etc/ssh/sshd_config
+  /bin/sed -i -e 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+  service ssh restart
+
+  # Configure SUDO
+    echo " ALL=(ALL) NOPASSWD: ALL" | (EDITOR="tee -a" visudo)
+}
+
+bashing() {
+  # Configure BASH
+  echo 'alias ls="ls -lah --color=auto"' >> /etc/bash.bashrc
+}
 
 update_arch() {
   #yesorno "Do you want to update Arch? [Y/n]" &&
@@ -180,6 +175,41 @@ partm() {
   echo " "
   #fdisk /dev/mmcblk0
 }
+
+###################################
+###################################
+###################################
+###################################
+#^ validé
+###################################
+###################################
+###################################
+###################################
+
+
+create_SSL() {
+  # Configuration Certificate SSL RUN openssl genrsa -out ${myhostname}.key 2048
+  openssl req \
+        -new \
+        -subj "/C=FR/ST=France/L=Lyon/O=jeedom/OU=JE/CN=jeedom" \
+        -key jeedom.key \
+        -out jeedom.csr && \
+  openssl x509 -req -days 9999 -in ${myhostname}.csr -signkey ${myhostname}.key -out ${myhostname}.crt
+}
+
+tuning_php() {
+  # modification de la configuration PHP pour un temps d'exécution allongé et le traitement de fichiers lourds RUN sed -i "s/max_execution_time = 30/max_execution_time = 300/g" /etc/php5/fpm/php.ini
+  sed -i "s/upload_max_filesize = 2M/upload_max_filesize = 1G/g" /etc/php5/fpm/php.ini
+  sed -i "s/post_max_size = 8M/post_max_size = 1G/g" /etc/php5/fpm/php.ini
+}
+
+
+
+
+
+
+
+
 
 
 
